@@ -151,6 +151,30 @@ nav{position:sticky;top:env(safe-area-inset-top,0px);z-index:25;display:flex;jus
 .pot .nm{display:grid;min-width:0}.pot .nm b{font-size:14px}.pot .nm small{color:var(--muted);direction:ltr;text-align:right;font-family:var(--f-lat);font-size:11.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .pot .pp{display:grid;text-align:center;font-size:12.5px;color:var(--gold);font-weight:700;white-space:nowrap}.pot .pp small{color:var(--muted);font-weight:400}
 .stp{display:inline-flex;align-items:center;gap:6px}.stp b{min-width:22px;text-align:center}
+.fgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:8px}
+.fcard{display:flex;align-items:center;gap:10px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:9px 11px;cursor:pointer}
+.fcard.lock{opacity:.55}.fcard.own{cursor:default;border-color:var(--moss);background:#f3e8ff}
+.fcard .nm{display:grid;flex:1;min-width:0}.fcard .nm small{color:var(--muted);font-size:11.5px}
+.wsbox{display:flex;flex-wrap:wrap;gap:18px;align-items:flex-end}.wsbox>div{display:grid;gap:2px}.big{font:900 26px var(--f-disp);color:var(--gold)}
+tr.cur td{background:#f3e8ff}
+input.ghost{border:0;background:transparent;font:inherit;font-weight:700;padding:2px 0;width:100%;box-shadow:none}input.ghost.sm{font-weight:400;font-size:12.5px;color:var(--muted)}
+.fdet>summary{cursor:pointer;font-weight:700;color:var(--gold);padding:6px 0}.fdet[open]>summary{margin-bottom:8px}.fdet>*:not(summary){margin-bottom:10px}
+.panel>.bar>.mini-av{width:54px;height:54px;flex:none}
+.ren{padding:1px 7px;vertical-align:middle}
+label.bar{display:flex;align-items:flex-start;gap:8px;line-height:1.4}label.bar input{flex:none;width:auto;margin-top:3px}
+@media (max-width:720px){
+ body{padding-bottom:78px}
+ header{padding-bottom:8px}
+ header::before{background-size:640px auto}
+ header .av{width:68px;height:68px;margin-top:22px}
+ header h1{font-size:21px;margin:12px 0 2px}header h1 small{font-size:10px}
+ header .chipbar{flex-wrap:nowrap;overflow-x:auto;justify-content:flex-start;gap:6px;padding-bottom:2px}header .chipbar>*{flex:none;font-size:12px;padding:3px 9px}
+ nav{position:fixed;top:auto;bottom:0;left:0;right:0;margin:0;padding:4px 4px calc(4px + env(safe-area-inset-bottom,0px));border-top:2px solid var(--gold-d);border-bottom:0;justify-content:space-around;gap:0;overflow:visible;box-shadow:0 -5px 14px #5a2d5622}
+ nav button{flex:1;display:grid;justify-items:center;gap:0;padding:3px 0;font-size:10.5px;border-radius:10px;border:0;min-width:0}
+ nav button .ic{font-size:19px;line-height:1.2}
+ nav button[aria-selected=true]{background:#f3e8ff;border:0;color:var(--gold)}
+ body::after{display:none}
+}
 @media (max-width:520px){header h1{font-size:23px}.pots{grid-template-columns:1fr}}
 </style>
 
@@ -162,12 +186,13 @@ nav{position:sticky;top:env(safe-area-inset-top,0px);z-index:25;display:flex;jus
   <div class="chipbar" id="hdr"></div>
 </header>
 <nav role="tablist" id="tabs">
-    <button role="tab" data-tab="dash" aria-selected="true">דשבורד</button>
-    <button role="tab" data-tab="lib" aria-selected="false">ספריית קסמים</button>
-    <button role="tab" data-tab="deck" aria-selected="false">חפיסה יומית</button>
-    <button role="tab" data-tab="sna" aria-selected="false">יצורים לזימון</button>
-    <button role="tab" data-tab="pot" aria-selected="false">שיקויים</button>
-    <button role="tab" data-tab="data" aria-selected="false">נתונים וגיבוי</button>
+    <button role="tab" data-tab="dash" aria-selected="true"><span class="ic">🏠</span><span>דשבורד</span></button>
+    <button role="tab" data-tab="lib" aria-selected="false"><span class="ic">📖</span><span>קסמים</span></button>
+    <button role="tab" data-tab="deck" aria-selected="false"><span class="ic">🃏</span><span>חפיסה</span></button>
+    <button role="tab" data-tab="sna" aria-selected="false"><span class="ic">🐾</span><span>זימון</span></button>
+    <button role="tab" data-tab="forms" aria-selected="false"><span class="ic">🐻</span><span>צורות</span></button>
+    <button role="tab" data-tab="pot" aria-selected="false"><span class="ic">🧪</span><span>שיקויים</span></button>
+    <button role="tab" data-tab="data" aria-selected="false"><span class="ic">💾</span><span>נתונים</span></button>
   </nav>
 <main>
   <section id="v-dash"></section>
@@ -175,6 +200,7 @@ nav{position:sticky;top:env(safe-area-inset-top,0px);z-index:25;display:flex;jus
   <section id="v-deck" hidden></section>
   <section id="v-sna" hidden></section>
   <section id="v-pot" hidden></section>
+  <section id="v-forms" hidden></section>
   <section id="v-data" hidden></section>
 </main>
 </div>
@@ -999,7 +1025,7 @@ function sx(id){return Object.assign({},BY.get(id),EXT[id]||{})} // merged spell
 function buildSpells(){
   SP=SPELLS_RAW.slice();
   for(const a of (EXT.__added||[]))SP.push(a);
-  BY=new Map();SP.forEach(s=>{s.cb=ctB(s.ct||"");s.db=durB(s.du||"");s.sb=svB(s.sv||"");s.rb=srB(s.sr||"");BY.set(s.i,s)})}
+  BY=new Map();SP.forEach(s=>{s.cb=ctB(s.ct||"");s.db=durB(s.du||"");s.sb=svB(s.sv||"");s.rb=srB(s.sr||"");BY.set(s.i,s)});applyNames()}
 const ext=id=>EXT[id]||{};
 const catsOf=id=>S.user.cats[id]||[BY.get(id).c];
 const tagsOf=id=>[...(BY.get(id).t||[]),...(S.user.tags[id]||[])];
@@ -1072,11 +1098,11 @@ S.cmp=[];
 /* ================= views ================= */
 let TAB="dash";
 function setTab(t){TAB=t;S.ui.tab=t;document.querySelectorAll("#tabs button").forEach(b=>b.setAttribute("aria-selected",b.dataset.tab===t));
-  for(const v of ["dash","lib","deck","sna","pot","data"])$("#v-"+v).hidden=v!==t;render()}
+  for(const v of ["dash","lib","deck","sna","pot","forms","data"])$("#v-"+v).hidden=v!==t;render()}
 function header(){
   const c=S.char,k=calc(),cf=cur(),tp=k.rows.reduce((a,r)=>a+r.total,0),tc=k.rows.reduce((a,r)=>a+r.cast,0);
   $("#hdr").innerHTML=`<span class="pill">${esc(c.name)} · דרואיד <b>${c.level}</b></span><span class="pill">Wis <b>${c.wis}</b> (${k.mod>=0?"+":""}${k.mod})</span><span class="pill">${cf?esc(cf.name)+` · יום <b>${cf.day}</b>`:"אין חפיסה"}</span><span class="pill">הוכנו <b>${tp}</b> · נוצלו <b>${tc}</b></span>`}
-function render(){header();({dash:rDash,lib:rLib,deck:rDeck,sna:rSna,pot:rPot,data:rData})[TAB]();renderCmp()}
+function render(){header();({dash:rDash,lib:rLib,deck:rDeck,sna:rSna,pot:rPot,forms:rForms,data:rData})[TAB]();renderCmp()}
 
 /* ---- dashboard ---- */
 function rDash(){
@@ -1129,6 +1155,7 @@ function rLib(){
   const cnt=Object.fromEntries(CATS.map(c=>[c[0],0]));SP.forEach(s=>catsOf(s.i).forEach(c=>cnt[c]=(cnt[c]||0)+1));
   $("#v-lib").innerHTML=`<div class="lib"><aside class="panel filters">
    <label class="f">חיפוש מהיר<input type="search" id="l-q" placeholder="שם, תיאור, הערות או תגית" value="${esc(LF.q)}"></label>
+   <details class="fdet" ${innerWidth>720?"open":""}><summary>סינון מתקדם (דרגה, קטגוריה, אסכולה…)</summary>
    <div><h3>דרגה</h3><div class="chips">${Array.from({length:10},(_,i)=>`<button class="chip" data-lv="${i}" aria-pressed="${LF.lv.has(i)}">${i}</button>`).join("")}</div></div>
    <div><h3>קטגוריה</h3><div class="chips">${CATS.map(c=>`<button class="chip" data-cat="${esc(c[0])}" aria-pressed="${LF.cat.has(c[0])}" title="${c[1]}"><i style="--c:${c[2]}"></i>${esc(c[0])} ${cnt[c[0]]}</button>`).join("")}</div></div>
    <label class="f">אסכולה${schools.length?"":" (אין נתון, אפשר לייבא)"}<select id="l-school" ${schools.length?"":"disabled"}>${opt(schools,LF.school,"הכול")}</select></label>
@@ -1138,7 +1165,7 @@ function rLib(){
    <label class="f">התנגדות לקסם<select id="l-sr">${opt(uniq(s=>s.rb).sort(),LF.sr,"הכול")}</select></label>
    <label class="f">תגית אישית / סוג<select id="l-tag">${opt(allTags,LF.tag,"הכול")}</select></label>
    <label class="bar"><input type="checkbox" id="l-fav" ${LF.fav?"checked":""}> מועדפים בלבד (${Object.values(S.user.fav).filter(Boolean).length})</label>
-   <button class="btn sm" data-act="lf-clear">ניקוי כל המסננים</button>
+   <button class="btn sm" data-act="lf-clear">ניקוי כל המסננים</button></details>
    ${S.recent.length?`<div class="hr"></div><h3>בשימוש לאחרונה</h3><div class="rec">${S.recent.slice(0,8).map(r=>`<button class="btn sm" data-act="open" data-id="${r.id}">${esc(BY.get(r.id)?.he||"")} · ${lvLabel(BY.get(r.id)?.l)}</button>`).join("")}</div>`:""}
   </aside><div><div class="bar" style="margin-bottom:10px"><h2 style="margin:0" id="l-count"></h2><span class="note">מוצגים לפי דרגה ושם</span></div><div class="cards" id="l-cards"></div><div class="bar" style="margin-top:14px;justify-content:center" id="l-more"></div></div></div>`;
   fillLib();
@@ -1219,7 +1246,7 @@ function openCreature(key){
   const c=CR.get(key);if(!c)return;const fav=(S.user.cf||{})[key],note=(S.user.cn||{})[key]||"",k=calc();
   const rows=[];for(let N=c.lv;N<=9;N++){const sp=snaSpell(N),r=k.rows[N],can=r.cap+r.dom>0;rows.push(`<tr><td class="l"><b>SNA ${ROM[N]}</b></td><td>${N===c.lv?"יצור אחד":N===c.lv+1?'<bdi dir="ltr">1d3</bdi> יצורים':'<bdi dir="ltr">1d4+1</bdi> יצורים'}</td><td class="${can?"ok":""}">${can?"כן":"לא"}</td><td>${sp?preparedCount(sp.i):0}</td><td><button class="btn sm" data-act="open" data-id="${sp?sp.i:0}">הקסם</button></td></tr>`)}
   const sub=/^(Elemental|Earth|Fire|Cold|Air)$/.test(c.note)||/Elemental/.test(c.en);
-  showModal(`<div class="bar"><span class="lv" style="width:38px;height:38px;border-radius:50%;background:#7b4fa3;color:#fff;display:grid;place-items:center;font:900 18px var(--f-disp)">${ROM[c.lv]}</span><div><h2 style="margin:0">${esc(c.he)}</h2><div class="note" style="direction:ltr;text-align:right;font-family:var(--f-lat)">${esc(c.en)}</div></div></div>
+  showModal(`<div class="bar"><span class="lv" style="width:38px;height:38px;border-radius:50%;background:#7b4fa3;color:#fff;display:grid;place-items:center;font:900 18px var(--f-disp)">${ROM[c.lv]}</span><div><h2 style="margin:0">${esc(c.he)} <button class="btn sm ren" data-act="rename" data-kind="c" data-k="${esc(key)}" aria-label="שינוי שם">✏️</button></h2><div class="note" style="direction:ltr;text-align:right;font-family:var(--f-lat)">${esc(c.en)}</div></div></div>
   <div class="bar" style="margin:10px 0"><span class="tag" style="color:var(--fg)">Summon Nature's Ally ${ROM[c.lv]}</span>${c.note?`<span class="tag" style="color:var(--fg)">${esc(c.note)}</span>`:""}</div>
   <dl class="kv"><dt>שם בעברית</dt><dd>${esc(c.he)} <span class="note">(תרגום עבודה)</span></dd><dt>שם באנגלית</dt><dd>${esc(c.en)}</dd><dt>נתוני הקרב באתר</dt><dd>${esc(c.item)}</dd><dt>רשימה</dt><dd>רשימת הזימון ${ROM[c.lv]} של הדרואיד</dd><dt>מקור</dt><dd>Core Rulebook, עמוד 353</dd>${c.note?`<dt>הערות</dt><dd>${esc(c.note)}</dd>`:""}</dl>
   <div class="hr"></div><h3>כמה אפשר לזמן, לפי דרגת הקסם</h3>
@@ -1255,11 +1282,11 @@ const potQ=i=>((S.user.pq||{})[i])|0;
 const fmtGp=n=>n.toLocaleString("en-US")+" gp";
 function potSet(k,d){S.user.pq=S.user.pq||{};const v=Math.max(0,Math.min(99,potQ(k)+d));if(v)S.user.pq[k]=v;else delete S.user.pq[k];save()}
 function potStep(i){return `<span class="stp"><button class="btn sm" data-act="pot-q" data-k="${i}" data-d="-1" aria-label="פחות">−</button><b>${potQ(i)}</b><button class="btn sm" data-act="pot-q" data-k="${i}" data-d="1" aria-label="יותר">+</button></span>`}
-function potRow(s){const q=potQ(s.i);return `<div class="pot${q?" own":""}"><div class="pn" role="button" tabindex="0" data-act="open-pot" data-id="${s.i}"><span class="lv">${lvLabel(s.l)}</span><span class="nm"><b>שיקוי ${esc(s.he)}</b><small>Potion of ${esc(s.en)}</small></span></div><span class="pp"><bdi dir="ltr">${fmtGp(POT_PRICE(s.l))}</bdi><small>CL ${POT_CL[s.l]}</small></span>${potStep(s.i)}</div>`}
+function potRow(s){const q=potQ(s.i);return `<div class="pot${q?" own":""}"><div class="pn" role="button" tabindex="0" data-act="open-pot" data-id="${s.i}"><span class="lv">${lvLabel(s.l)}</span><span class="nm"><b>${esc(potName(s))}</b><small>Potion of ${esc(s.en)}</small></span></div><span class="pp"><bdi dir="ltr">${fmtGp(POT_PRICE(s.l))}</bdi><small>CL ${POT_CL[s.l]}</small></span>${potStep(s.i)}</div>`}
 function openPotion(id){
   const s=BY.get(id);if(!s)return;
-  showModal(`<div class="bar"><span class="lv" style="width:38px;height:38px;border-radius:50%;background:#7b4fa3;color:#fff;display:grid;place-items:center;font:900 18px var(--f-disp)">${s.l}</span><div><h2 style="margin:0">שיקוי ${esc(s.he)}</h2><div class="note" style="direction:ltr;text-align:right;font-family:var(--f-lat)">Potion of ${esc(s.en)}</div></div></div>
-  <dl class="kv"><dt>קסם מקור</dt><dd>${esc(s.he)} · דרגה ${s.l}</dd><dt>מחיר שוק</dt><dd><bdi dir="ltr">${fmtGp(POT_PRICE(s.l))}</bdi></dd><dt>דרגת מטיל (CL)</dt><dd>${POT_CL[s.l]} (המינימלית)</dd><dt>עלות הכנה</dt><dd><bdi dir="ltr">${fmtGp(POT_PRICE(s.l)/2)}</bdi> (חצי ממחיר השוק)</dd><dt>שימוש</dt><dd>פעולה רגילה אחת לשתייה; מעורר התקפות הזדמנות</dd><dt>זמן הטלה במקור</dt><dd>${esc(s.ct||"")}</dd><dt>טווח במקור</dt><dd>${esc(s.rg||"")}</dd><dt>משך</dt><dd>${esc(s.du||"")}</dd><dt>רכיבים</dt><dd>${esc(s.cm||"")}</dd></dl>
+  showModal(`<div class="bar"><span class="lv" style="width:38px;height:38px;border-radius:50%;background:#7b4fa3;color:#fff;display:grid;place-items:center;font:900 18px var(--f-disp)">${s.l}</span><div><h2 style="margin:0">${esc(potName(s))} <button class="btn sm ren" data-act="rename" data-kind="p" data-k="${s.i}" aria-label="שינוי שם">✏️</button></h2><div class="note" style="direction:ltr;text-align:right;font-family:var(--f-lat)">Potion of ${esc(s.en)}</div></div></div>
+  <dl class="kv" data-potmodal><dt>קסם מקור</dt><dd>${esc(s.he)} · דרגה ${s.l}</dd><dt>מחיר שוק</dt><dd><bdi dir="ltr">${fmtGp(POT_PRICE(s.l))}</bdi></dd><dt>דרגת מטיל (CL)</dt><dd>${POT_CL[s.l]} (המינימלית)</dd><dt>עלות הכנה</dt><dd><bdi dir="ltr">${fmtGp(POT_PRICE(s.l)/2)}</bdi> (חצי ממחיר השוק)</dd><dt>שימוש</dt><dd>פעולה רגילה אחת לשתייה; מעורר התקפות הזדמנות</dd><dt>זמן הטלה במקור</dt><dd>${esc(s.ct||"")}</dd><dt>טווח במקור</dt><dd>${esc(s.rg||"")}</dd><dt>משך</dt><dd>${esc(s.du||"")}</dd><dt>רכיבים</dt><dd>${esc(s.cm||"")}</dd></dl>
   <div class="hr"></div><h3>מה זה עושה</h3><p>${esc(s.d||"")}</p>
   <p class="note">השותה הוא גם המטרה של הקסם. אפשר לתת שיקוי לדמות מחוסרת הכרה בפעולת סיבוב מלא. ייתכנו הגבלות נוספות לפי המאסטר, למשל קסם עם רכיב יקר.</p>
   <div class="hr"></div><div class="bar"><b>בתיק שלי:</b> ${potStep(id)}</div>
@@ -1267,7 +1294,7 @@ function openPotion(id){
 function rPot(){
   const q=POT_Q.trim().toLowerCase(),all=potList(),own=all.filter(s=>potQ(s.i)),cust=S.user.pc||[];
   const cnt=own.reduce((a,s)=>a+potQ(s.i),0)+cust.reduce((a,c)=>a+(+c.q||0),0),val=own.reduce((a,s)=>a+potQ(s.i)*POT_PRICE(s.l),0)+cust.reduce((a,c)=>a+(+c.q||0)*(+c.p||0),0);
-  const L=all.filter(s=>(POT_LV<0||s.l===POT_LV)&&(!POT_OWN||potQ(s.i))&&(!q||(s.he+" "+s.en).toLowerCase().includes(q)));
+  const L=all.filter(s=>(POT_LV<0||s.l===POT_LV)&&(!POT_OWN||potQ(s.i))&&(!q||(potName(s)+" "+s.he+" "+s.en).toLowerCase().includes(q)));
   const custH=cust.length?`<div class="glabel"><h2>שיקויים מותאמים אישית</h2></div><div class="pots">${cust.map((c,i)=>`<div class="pot own"><div class="pn"><span class="lv">★</span><span class="nm"><b>${esc(c.n)}</b>${c.t?`<small>${esc(c.t)}</small>`:""}</span></div><span class="pp"><bdi dir="ltr">${c.p?fmtGp(+c.p):"—"}</bdi></span><span class="stp"><button class="btn sm" data-act="potc-q" data-k="${i}" data-d="-1">−</button><b>${+c.q||0}</b><button class="btn sm" data-act="potc-q" data-k="${i}" data-d="1">+</button></span><button class="btn sm" data-act="potc-del" data-k="${i}" aria-label="מחיקה">✕</button></div>`).join("")}</div>`:"";
   $("#v-pot").innerHTML=`<div class="panel"><div class="bar"><div class="mini-av" style="margin:0"></div><div><h2 style="margin:0">ספר השיקויים 🍯</h2><p class="note" style="margin:2px 0 0">עוקבים אחרי השיקויים שיש לכם. שיקוי הוא קסם דרגה 0–3 במטרה אחת או יותר, והמחירים לפי חוקי ה־Core Rulebook ב־Archives of Nethys.</p></div></div>
     <div class="hr"></div>
@@ -1282,6 +1309,59 @@ function rPot(){
   document.querySelectorAll("[data-potlv]").forEach(b=>b.addEventListener("click",()=>{POT_LV=+b.dataset.potlv;rPot()}));
   $("#pot-own").addEventListener("click",()=>{POT_OWN=!POT_OWN;rPot()});
   $("#pc-add").addEventListener("click",()=>{const n=$("#pc-n").value.trim();if(!n){toast("צריך שם לשיקוי",true);return}S.user.pc=S.user.pc||[];S.user.pc.push({n,p:+$("#pc-p").value||0,t:$("#pc-t").value.trim(),q:1});save();rPot()})}
+
+/* ---- Wild Shape: druid class feature, Core Rulebook (aonprd.com/ClassDisplay.aspx?ItemName=Druid). Forms work like beast shape / elemental body / plant shape (legacy.aonprd.com/corerulebook/spells/beastShape.html, elementalBody.html, plantShape.html). ---- */
+const WS_USES=l=>l<4?0:l>=20?Infinity:1+Math.floor((l-4)/2);
+const FORMS=[
+{id:"a1",k:"a",lv:4,en:"Beast Shape I",he:"צורת חיה I",sz:"קטן / בינוני",ab:"טיפוס 30 ft, תעופה 30 ft (ממוצעת), שחייה 30 ft, ראיית חושך 60 ft, ראיית אור חלש, ריח",rows:[["קטן (Small)","Dex +2","+1"],["בינוני (Medium)","Str +2","+2"]],note:"חיות בלבד. היכולות ניתנות רק אם לצורה שבחרתם יש אותן."},
+{id:"a2",k:"a",lv:6,en:"Beast Shape II",he:"צורת חיה II",sz:"זעיר־קטן / גדול",ab:"כמו צורת חיה I, ובנוסף: טיפוס, תעופה (טובה) ושחייה עד 60 ft; Grab, Pounce, Trip",rows:[["קטנטן (Tiny)","Dex +4, Str −2","+1"],["גדול (Large)","Str +4, Dex −2","+4"]],note:"בדרגה 6 נפתחות חיות גדולות וקטנטנות."},
+{id:"a3",k:"a",lv:8,en:"Beast Shape III",he:"צורת חיה III",sz:"זעיר / ענק",ab:"כמו צורת חיה II, ובנוסף: חפירה 30 ft, טיפוס/תעופה/שחייה עד 90 ft, חוש עיוור 30 ft; Constrict, Ferocity, Jet, Poison, Rake, Trample, Web",rows:[["זעיר (Diminutive)","Dex +6, Str −4","+1"],["ענק (Huge)","Str +6, Dex −4","+6"]],note:"בצורת Wild Shape רק חיות. יצורי קסם מגיעים מהקסם עצמו, שאינו ברשימת הדרואיד."},
+{id:"e1",k:"e",lv:6,en:"Elemental Body I",he:"גוף יסוד I",sz:"קטן",ab:"ראו הטבלה לפי יסוד",rows:[["אוויר","Dex +2","+2","תעופה 60 ft (מושלמת), ראיית חושך 60 ft, Whirlwind"],["אדמה","Str +2","+4","ראיית חושך 60 ft, Earth glide"],["אש","Dex +2","+2","ראיית חושך 60 ft, עמידות באש 20, פגיע לקור, Burn"],["מים","Con +2","+4","שחייה 60 ft, ראיית חושך 60 ft, Vortex, נשימת מים"]],note:"אפשר לעבור רק ליסודות של אוויר, אדמה, אש או מים."},
+{id:"e2",k:"e",lv:8,en:"Elemental Body II",he:"גוף יסוד II",sz:"בינוני",ab:"כמו I, בגודל בינוני",rows:[["אוויר","Dex +4","+3","כמו קטן"],["אדמה","Str +4","+5","כמו קטן"],["אש","Dex +4","+3","כמו קטן"],["מים","Con +4","+5","כמו קטן"]]},
+{id:"e3",k:"e",lv:10,en:"Elemental Body III",he:"גוף יסוד III",sz:"גדול",ab:"כמו II, ובנוסף חסינות לדימום, פגיעות קריטיות והתקפות מתגנבות",rows:[["אוויר","Str +2, Dex +4","+4","כמו קטן"],["אדמה","Str +6, Dex −2, Con +2","+6","כמו קטן"],["אש","Dex +4, Con +2","+4","כמו קטן"],["מים","Str +2, Dex −2, Con +6","+6","כמו קטן"]]},
+{id:"e4",k:"e",lv:12,en:"Elemental Body IV",he:"גוף יסוד IV",sz:"ענק",ab:"כמו III, ובנוסף DR 5/—",rows:[["אוויר","Str +4, Dex +6","+4","תעופה 120 ft (מושלמת), Whirlwind"],["אדמה","Str +8, Dex −2, Con +4","+6","כמו קטן"],["אש","Dex +6, Con +4","+4","כמו קטן"],["מים","Str +4, Dex −2, Con +8","+6","שחייה 120 ft, Vortex, נשימת מים"]]},
+{id:"p1",k:"p",lv:8,en:"Plant Shape I",he:"צורת צמח I",sz:"קטן / בינוני",ab:"ראיית חושך 60 ft, ראיית אור חלש; Constrict, Grab, Poison (אם לצורה יש)",rows:[["קטן (Small)","Con +2","+2"],["בינוני (Medium)","Str +2, Con +2 (enhancement)","+2"]],note:"אם הצורה לא יכולה לזוז, המהירות הופכת ל־5 ft ושאר סוגי התנועה אובדים."},
+{id:"p2",k:"p",lv:10,en:"Plant Shape II",he:"צורת צמח II",sz:"גדול",ab:"כמו I, ובנוסף עמידות 20 ליסודות שהצורה חסינה או עמידה להם",rows:[["גדול (Large)","Str +4, Con +2","+4"]]},
+{id:"p3",k:"p",lv:12,en:"Plant Shape III",he:"צורת צמח III",sz:"ענק",ab:"כמו II, ובנוסף DR, Regeneration 5 ו־Trample (אם לצורה יש)",rows:[["ענק (Huge)","Str +8, Dex −2, Con +4","+6"]]}];
+const FBY=new Map(FORMS.map(f=>[f.id,f]));
+const FSRC={a:"https://legacy.aonprd.com/corerulebook/spells/beastShape.html",e:"https://legacy.aonprd.com/corerulebook/spells/elementalBody.html",p:"https://legacy.aonprd.com/corerulebook/spells/plantShape.html"};
+const FKIND={a:["חיות","🐾"],e:["יסודות","🔥"],p:["צמחים","🌿"]};
+const fName=f=>(S.user.rn||{})["f"+f.id]||f.he;
+function wsUsedSet(d){const l=S.char.level,m=WS_USES(l);S.user.wsu=Math.max(0,Math.min(m===Infinity?99:m,(S.user.wsu|0)+d));save()}
+function formCard(f){const L=S.char.level,open=L>=f.lv;return `<div class="fcard${open?"":" lock"}" role="button" tabindex="0" data-act="open-form" data-k="${f.id}"><span class="lv">${f.lv}</span><span class="nm"><b>${esc(fName(f))}</b><small>${esc(f.en)} · ${esc(f.sz)}</small></span>${open?"":`<span class="tag">נפתח בדרגה ${f.lv}</span>`}</div>`}
+function openForm(id){
+  const f=FBY.get(id);if(!f)return;const open=S.char.level>=f.lv,el=f.k==="e";
+  showModal(`<div class="bar"><span class="lv" style="width:38px;height:38px;border-radius:50%;background:#7b4fa3;color:#fff;display:grid;place-items:center;font:900 18px var(--f-disp)">${f.lv}</span><div><h2 style="margin:0">${esc(fName(f))} <button class="btn sm ren" data-act="rename" data-kind="f" data-k="${f.id}" aria-label="שינוי שם">✏️</button></h2><div class="note" style="direction:ltr;text-align:right;font-family:var(--f-lat)">${esc(f.en)}</div></div></div>
+  <div class="bar" style="margin:10px 0"><span class="tag" style="color:var(--fg)">Wild Shape · דרגת דרואיד ${f.lv}</span><span class="tag" style="color:var(--fg)">${open?"פתוח לדמות שלך ✓":"עדיין נעול לדמות שלך"}</span></div>
+  <dl class="kv"><dt>גדלים</dt><dd>${esc(f.sz)}</dd><dt>משך</dt><dd>שעה אחת לכל דרגת דרואיד, או עד שחוזרים לצורה הרגילה</dd><dt>החלפת צורה</dt><dd>פעולה רגילה, ללא התקפת הזדמנות</dd><dt>תקשורת</dt><dd>אי אפשר לדבר. אפשר לתקשר עם חיות מאותה קבוצה</dd><dt>מקור</dt><dd>Druid · Wild Shape (Core Rulebook), כמו הקסם ${esc(f.en)}</dd><dt>יכולות שמתקבלות</dt><dd>${esc(f.ab)}</dd></dl>
+  <h3>שינויים לפי ${el?"יסוד":"גודל"}</h3><div class="tblwrap"><table class="tbl"><thead><tr><th class="l">${el?"יסוד":"גודל"}</th><th>תכונות</th><th>שריון טבעי</th>${el?"<th>תנועה ויכולות</th>":""}</tr></thead><tbody>${f.rows.map(r=>`<tr><td class="l"><b>${esc(r[0])}</b></td><td><bdi dir="ltr">${esc(r[1])}</bdi></td><td><bdi dir="ltr">${esc(r[2])}</bdi></td>${el?`<td>${esc(r[3]||"")}</td>`:""}</tr>`).join("")}</tbody></table></div>
+  ${f.note?`<p class="note">${esc(f.note)}</p>`:""}
+  <p class="note">הנתונים מתומצתים מ־Archives of Nethys. כללי חיות: הצורה צריכה להיות חיה שאתם מכירים. לפרטים המלאים ראו את הקסם.</p>
+  <div class="bar" style="margin-top:12px"><a class="btn gold" href="${FSRC[f.k]}" target="_blank" rel="noopener">${esc(f.en)} ב־Archives of Nethys ↗</a></div>`)}
+function rForms(){
+  const L=S.char.level,m=WS_USES(L),used=S.user.wsu|0,my=S.user.ff||[],uTxt=m===Infinity?"ללא הגבלה":m;
+  const sec=k=>`<div class="glabel"><h2>${FKIND[k][1]} ${FKIND[k][0]}</h2></div><div class="fgrid">${FORMS.filter(f=>f.k===k).map(formCard).join("")}</div>`;
+  $("#v-forms").innerHTML=`<div class="panel"><div class="bar"><div class="mini-av" style="margin:0"></div><div><h2 style="margin:0">צורות בר 🐻 (Wild Shape)</h2><p class="note" style="margin:2px 0 0">מה הדרואיד יכול להפוך אליו לפי הדרגה שלו, לפי חוקי ה־Core Rulebook.</p></div></div><div class="hr"></div>
+   ${L<4?`<p>הדרואיד שלך בדרגה ${L}. Wild Shape נפתח בדרגה 4.</p>`:`<div class="wsbox"><div><span class="note">שימושים ליום</span><b class="big">${uTxt}</b></div><div><span class="note">משך</span><b class="big">${L} שעות</b></div><div><span class="note">נוצלו היום</span><span class="stp"><button class="btn sm" data-act="ws-u" data-d="-1">−</button><b>${used}</b><button class="btn sm" data-act="ws-u" data-d="1">+</button></span>${m!==Infinity&&used>=m?'<span class="tag" style="color:#a33">נגמרו</span>':""}</div><button class="btn sm" data-act="ws-reset">☀️ איפוס (מנוחה)</button></div>`}
+   <details style="margin-top:10px"><summary>טבלת התקדמות לפי דרגה</summary><div class="tblwrap"><table class="tbl"><thead><tr><th class="l">דרגה</th><th>שימושים ליום</th><th>צורות חדשות</th></tr></thead><tbody>${[[4,"חיות קטנות ובינוניות"],[6,"חיות גדולות וקטנטנות · יסוד קטן"],[8,"חיות ענקיות וזעירות · יסוד בינוני · צמח קטן/בינוני"],[10,"יסוד גדול · צמח גדול"],[12,"יסוד ענק · צמח ענק"],[14,"—"],[16,"—"],[18,"—"],[20,"Wild Shape ללא הגבלה"]].map(r=>`<tr class="${L>=r[0]&&(r[0]===20||L<r[0]+2)?"cur":""}"><td class="l"><b>${r[0]}</b></td><td>${WS_USES(r[0])===Infinity?"∞":WS_USES(r[0])}</td><td>${r[1]}</td></tr>`).join("")}</tbody></table></div></details></div>
+   ${sec("a")}${sec("e")}${sec("p")}
+   <div class="glabel"><h2>⭐ הצורות שלי</h2><span class="note">חיות שאתם משתמשים בהן, עם הנתונים שלהן</span></div>
+   <div class="panel"><div class="bar"><input id="ff-n" placeholder="שם החיה (למשל זאב)" style="max-width:200px"><select id="ff-t" style="max-width:190px">${FORMS.filter(f=>f.k==="a").map(f=>`<option value="${f.id}">${esc(fName(f))}</option>`).join("")}</select><input id="ff-x" placeholder="מהירות, התקפות, יכולות" style="flex:1;min-width:160px"><button class="btn pri" id="ff-add">הוספה</button></div></div>
+   <div class="fgrid">${my.map((c,i)=>`<div class="fcard own"><span class="lv">★</span><span class="nm"><input class="ghost" data-ffn="${i}" value="${esc(c.n)}"><input class="ghost sm" data-ffx="${i}" value="${esc(c.x||"")}" placeholder="נתונים"><small>${esc(fName(FBY.get(c.t)||FORMS[0]))}</small></span><button class="btn sm" data-act="ff-del" data-k="${i}" aria-label="מחיקה">✕</button></div>`).join("")||'<p class="note">עוד אין צורות. הוסיפו כאן את החיות שבהן אתם משתמשים הכי הרבה.</p>'}</div>`;
+  $("#ff-add").addEventListener("click",()=>{const n=$("#ff-n").value.trim();if(!n){toast("צריך שם לחיה",true);return}S.user.ff=S.user.ff||[];S.user.ff.push({n,t:$("#ff-t").value,x:$("#ff-x").value.trim()});save();rForms()});
+  document.querySelectorAll("[data-ffn]").forEach(i=>i.addEventListener("change",()=>{const c=S.user.ff[+i.dataset.ffn];if(c&&i.value.trim()){c.n=i.value.trim();save()}}));
+  document.querySelectorAll("[data-ffx]").forEach(i=>i.addEventListener("change",()=>{const c=S.user.ff[+i.dataset.ffx];if(c){c.x=i.value.trim();save()}}))}
+/* ---- renaming (spells, potions, creatures, forms), persisted in S.user.rn ---- */
+function rnGet(k){return (S.user.rn||{})[k]}
+function applyNames(){const rn=S.user.rn||{};for(const s of SP){if(s.he0===undefined)s.he0=s.he;s.he=rn["s"+s.i]||s.he0}
+  if(typeof CR!=="undefined")for(const c of CR.values()){if(c.he0===undefined)c.he0=c.he;c.he=rn["c"+c.en]||c.he0}}
+const potName=s=>rnGet("p"+s.i)||("שיקוי "+s.he);
+function defName(kind,k){if(kind==="s")return BY.get(+k).he0;if(kind==="c")return CR.get(k).he0;if(kind==="p")return "שיקוי "+BY.get(+k).he;return FBY.get(k).he}
+function curName(kind,k){if(kind==="s")return BY.get(+k).he;if(kind==="c")return CR.get(k).he;if(kind==="p")return potName(BY.get(+k));return fName(FBY.get(k))}
+function renameDlg(kind,k){const lbl={s:"קסם",c:"יצור",p:"שיקוי",f:"צורה"}[kind];
+  showModal(`<h2>שינוי שם ${lbl}</h2><p class="note">השם המקורי: <b>${esc(defName(kind,k))}</b><br>השם החדש נשמר בטלפון ומופיע בכל האפליקציה.</p><input id="rn-in" type="text" value="${esc(curName(kind,k))}" style="width:100%"><div class="bar" style="margin-top:12px"><button class="btn pri" data-act="rename-do" data-kind="${kind}" data-k="${esc(k)}">שמירה</button><button class="btn" data-act="rename-reset" data-kind="${kind}" data-k="${esc(k)}">שחזור השם המקורי</button><button class="btn" data-act="rename-back" data-kind="${kind}" data-k="${esc(k)}">ביטול</button></div>`);setTimeout(()=>{const i=$("#rn-in");i&&i.select()},30)}
+function reopen(kind,k){({s:()=>openSpell(+k),c:()=>openCreature(k),p:()=>openPotion(+k),f:()=>openForm(k)})[kind]()}
+function rnSet(kind,k,v){S.user.rn=S.user.rn||{};const key=kind+(kind==="s"||kind==="p"?+k:k);if(v)S.user.rn[key]=v;else delete S.user.rn[key];save();applyNames();render()}
 
 /* ---- data tab ---- */
 function rData(){
@@ -1319,7 +1399,7 @@ function closeModal(){$("#modal").hidden=true;$("#modal").innerHTML=""}
 function openSpell(id){
   const s=BY.get(id),e=ext(id),n=preparedCount(id),cats=catsOf(id),note=S.user.notes[id]||"",tags=(S.user.tags[id]||[]).join(", ");
   const rows=[["דרגה (דרואיד)",s.l],["אסכולה",e.school?(e.school+(e.sub?` (${e.sub})`:"")):""],["מאפיינים",e.desc],["זמן הטלה",s.ct],["רכיבים",s.cm],["טווח",s.rg],[s.tl||"מטרה / אזור",s.tv],["משך",s.du],["הצלה",s.sv],["התנגדות לקסם",s.sr],["ספר מקור",e.source||"Archives of Nethys"]];
-  showModal(`<div class="bar"><span class="lv" style="width:38px;height:38px;border-radius:50%;background:${CCOL[cats[0]]||"#6a5a2a"};display:grid;place-items:center;font:900 20px var(--f-disp)">${s.l}</span><div><h2 style="margin:0">${esc(s.he)}</h2><div class="note" style="direction:ltr;text-align:right;font-family:var(--f-lat)">${esc(s.en)}</div></div></div>
+  showModal(`<div class="bar"><span class="lv" style="width:38px;height:38px;border-radius:50%;background:${CCOL[cats[0]]||"#6a5a2a"};display:grid;place-items:center;font:900 20px var(--f-disp)">${s.l}</span><div><h2 style="margin:0">${esc(s.he)} <button class="btn sm ren" data-act="rename" data-kind="s" data-k="${id}" aria-label="שינוי שם">✏️</button></h2><div class="note" style="direction:ltr;text-align:right;font-family:var(--f-lat)">${esc(s.en)}</div></div></div>
   <div class="bar" style="margin:10px 0">${cats.map(c=>`<span class="tag" style="color:var(--fg);border-color:${CCOL[c]||"#888"}">${esc(c)} · ${esc(CEN[c]||"")}</span>`).join("")}${(s.t||[]).map(t=>`<span class="tag" style="color:var(--fg)">${esc(t)}</span>`).join("")}</div>
   <p>${esc(e.full||s.d)}</p>${e.full?`<p class="note">תקציר: ${esc(s.d)}</p>`:'<p class="note">זהו תקציר. הטקסט המלא אינו כלול בנתונים. אפשר לקרוא אותו בקישור או לייבא אותו.</p>'}
   <dl class="kv">${rows.filter(r=>r[1]!==""&&r[1]!==undefined).map(r=>`<dt>${esc(r[0])}</dt><dd>${esc(r[1])}</dd>`).join("")}<dt>שימוש מומלץ</dt><dd>${esc(s.u)}</dd><dt>דירוג</dt><dd>${"★".repeat(s.r)}${"☆".repeat(5-s.r)} ${esc(RATING[s.r]||"")}<div class="note">${esc(s.w)}</div></dd></dl>
@@ -1374,7 +1454,15 @@ document.addEventListener("click",e=>{
     case"sna":snaDialog(id);break;
     case"open-cr":openCreature(t.dataset.k);break;
     case"open-pot":openPotion(id);break;
-    case"pot-q":{const k=+t.dataset.k;potSet(k,+t.dataset.d);if(!$("#modal").hidden&&/שיקוי/.test($("#modal h2")?.textContent||""))openPotion(k);if(TAB==="pot")rPot();break}
+    case"open-form":openForm(t.dataset.k);break;
+    case"ws-u":wsUsedSet(+t.dataset.d);rForms();break;
+    case"ws-reset":S.user.wsu=0;save();rForms();break;
+    case"ff-del":(S.user.ff||[]).splice(+t.dataset.k,1);save();rForms();break;
+    case"rename":renameDlg(t.dataset.kind,t.dataset.k);break;
+    case"rename-do":{const v=$("#rn-in").value.trim(),k=t.dataset.kind,key=t.dataset.k;rnSet(k,key,v&&v!==defName(k,key)?v:"");reopen(k,key);break}
+    case"rename-reset":rnSet(t.dataset.kind,t.dataset.k,"");reopen(t.dataset.kind,t.dataset.k);break
+    case"rename-back":reopen(t.dataset.kind,t.dataset.k);break;
+    case"pot-q":{const k=+t.dataset.k;potSet(k,+t.dataset.d);if(!$("#modal").hidden&&$("#modal [data-potmodal]"))openPotion(k);if(TAB==="pot")rPot();break}
     case"potc-q":{const c=(S.user.pc||[])[+t.dataset.k];if(c){c.q=Math.max(0,Math.min(99,(+c.q||0)+(+t.dataset.d)));save();rPot()}break}
     case"potc-del":{(S.user.pc||[]).splice(+t.dataset.k,1);save();rPot();break}
     case"cr-fav":{S.user.cf=S.user.cf||{};const k=t.dataset.k;if(S.user.cf[k])delete S.user.cf[k];else S.user.cf[k]=1;save();openCreature(k);if(TAB==="sna")rSna();break}
@@ -1421,11 +1509,11 @@ document.addEventListener("dragend",()=>{dragId=null});
 /* ================= boot ================= */
 function fx(){const f=$("#fx");for(let i=0;i<14;i++){const s=document.createElement("span");s.className="fly";s.textContent=["✦","✿","🍪","✦","🧶","❀","🍪","✦"][i%8];s.style.left=Math.random()*100+"vw";s.style.top=(20+Math.random()*75)+"vh";s.style.animationDelay=(-Math.random()*9)+"s";s.style.animationDuration=(7+Math.random()*7)+"s";f.appendChild(s)}}
 (()=>{const A=window.PF_ART||{},r=document.documentElement.style;for(const [k,v] of [["--art-hdr",A.hdr],["--art-face",A.face],["--art-alp",A.alpaca],["--art-fl",A.flowers]])if(v)r.setProperty(k,`url(${v})`)})();
-load();S.cmp=[];buildSpells();
+load();S.cmp=[];buildSpells();applyNames();
 if(!S.configs.length){sampleConfig();save()}
 if(!cur())S.active=S.configs[0]?.id||null;
 fx();TAB=S.ui.tab||"dash";document.querySelectorAll("#tabs button").forEach(b=>b.setAttribute("aria-selected",b.dataset.tab===TAB));
-for(const v of ["dash","lib","deck","sna","pot","data"])$("#v-"+v).hidden=v!==TAB;
+for(const v of ["dash","lib","deck","sna","pot","forms","data"])$("#v-"+v).hidden=v!==TAB;
 render();
 window.__pf={S:()=>S,calc,addToDeck,castOne,convertOne,TABLE};
 })();
